@@ -1,6 +1,7 @@
 ;Main Boot Record
 ;-----------------------------------
 %include "boot.inc"
+
 SECTION MBR vstart=0x7c00
     mov ax,cs
     mov ds,ax
@@ -8,8 +9,8 @@ SECTION MBR vstart=0x7c00
     mov ss,ax
     mov fs,ax
     mov sp,0x7c00
-	mov ax,0xb800
-	mov gs,ax
+    mov ax,0xb800
+    mov gs,ax
 
 ;clear screen by using function 0x06 , wrap all line to clear screen 
 ;---------------------------------------------------------
@@ -46,7 +47,7 @@ SECTION MBR vstart=0x7c00
 	
    	mov eax,LOADER_START_SECTOR	;address of start sector
 	mov bx,LOADER_BASE_ADDR
-	mov cx,1	;number of sector to be read
+	mov cx,4	;number of sector to be read
 
 	call rd_disk_m_16
 
@@ -111,7 +112,7 @@ rd_disk_m_16:
 	mul dx
 	mov cx,ax
 
-	mov ax,0x1f0
+	mov dx,0x1f0
 .go_on_read:
 	in ax,dx
 	mov [bx],ax

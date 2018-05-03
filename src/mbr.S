@@ -12,7 +12,8 @@ SECTION MBR vstart=0x7c00
     mov ax,0xb800
     mov gs,ax
 
-;clear screen by using function 0x06 , wrap all line to clear screen 
+;clear screen 
+;by using function 0x06 , wrap all line to clear screen 
 ;---------------------------------------------------------
 ;INT 0x10   function code:0x06 description:
 ;input:
@@ -47,7 +48,7 @@ SECTION MBR vstart=0x7c00
 	
    	mov eax,LOADER_START_SECTOR	;address of start sector
 	mov bx,LOADER_BASE_ADDR
-	mov cx,4	;number of sector to be read
+	mov cx,4					;number of sector to be read
 
 	call rd_disk_m_16
 

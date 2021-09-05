@@ -1,4 +1,3 @@
-bin/
-log/
-ogj/
-img/
+bin/*
+.vscode/
+build/

@@ -13,13 +13,6 @@ int main(void)
     put_int(0x12345678);
     put_char('\n');
     put_int(0x00000000);
-    asm(" pusha;\
-            movl in_a, %eax;\
-            movl in_b, %ebx;\
-            addl %ebx, %eax;\
-            movl %eax, out_sum;\
-            popa");
-
     while (1)
         ;
     return 0;

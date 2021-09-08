@@ -58,7 +58,7 @@ init.o:
 	$(kernel)/init.c
 
 kernel.bin: main_32.o print.o kernel.o interrupt.o init.o
-# 	添加待链接文件时，最好保持调用在前，实现在后的书写顺序
+#	添加待链接文件时，最好保持调用在前，实现在后的书写顺序
 	@ld -m elf_i386 -Ttext 0xc0001500 -e main \
 	-o $(bin)/kernel.bin \
 	$(obj)/main_32.o $(obj)/print.o $(obj)/kernel.o $(obj)/interrupt.o \

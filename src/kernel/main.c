@@ -5,7 +5,8 @@ void main(void)
     put_char('\n');
     put_str("I am kernel\n");
     init_all();
+    put_str("abab\n");
     asm volatile("sti"); // 为演示中断处理,在此临时开中断
     while (1)
-        asm volatile ("hlt");
+        ;
 }

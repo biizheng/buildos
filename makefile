@@ -3,6 +3,7 @@ config = ./config
 src=./src
 
 boot = $(src)/boot
+device = $(src)/device
 include = $(src)/include
 kernel = $(src)/kernel
 lib = $(src)/lib
@@ -57,11 +58,16 @@ init.o:
 	-o $(obj)/init.o \
 	$(kernel)/init.c
 
-kernel.bin: main_32.o print.o kernel.o interrupt.o init.o
+timer.o:
+	@gcc -m32 -c -fno-builtin -fno-stack-protector -I $(lib_kernel) -I $(device) -I $(lib) \
+	-o $(obj)/timer.o \
+	$(device)/timer.c
+
+kernel.bin: main_32.o print.o kernel.o interrupt.o init.o timer.o
 #	添加待链接文件时，最好保持调用在前，实现在后的书写顺序
 	@ld -m elf_i386 -Ttext 0xc0001500 -e main \
 	-o $(bin)/kernel.bin \
-	$(obj)/main_32.o $(obj)/print.o $(obj)/kernel.o $(obj)/interrupt.o \
+	$(obj)/main_32.o $(obj)/print.o $(obj)/kernel.o $(obj)/interrupt.o $(obj)/timer.o \
 	$(obj)/init.o
 
 	@ls -lh $(bin)/kernel.bin

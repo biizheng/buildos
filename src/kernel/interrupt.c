@@ -80,6 +80,17 @@ static void general_intr_handler(uint8_t vec_nr)
     {           // 0x2f是从片8259A上的最后一个irq引脚，保留
         return; //IRQ7和IRQ15会产生伪中断(spurious interrupt),无须处理。
     }
+    if(vec_nr == 0xd ){
+        put_str("0x0d:");
+        put_str(intr_name[vec_nr]);
+        put_char('\n');
+        return;
+    }
+    if(vec_nr == 0x20 ){
+        put_str(" 0x20: ");
+        put_str(intr_name[vec_nr]);
+        return;
+    }
     put_str("int vector: 0x");
     put_int(vec_nr);
     put_char('\n');
@@ -124,9 +135,9 @@ static void exception_init(void)
 void idt_init()
 {
     put_str("idt_init start\n");
-    idt_desc_init(); // 初始化中断描述符表
-    exception_init();  // 异常名初始化并注册通常的中断处理函数
-    pic_init();      // 初始化8259A
+    idt_desc_init();  // 初始化中断描述符表
+    exception_init(); // 异常名初始化并注册通常的中断处理函数
+    pic_init();       // 初始化8259A
 
     /* 加载idt */
     uint64_t idt_operand = ((sizeof(idt) - 1) | ((uint64_t)(uint32_t)idt << 16));

@@ -12,7 +12,7 @@ void panic_spin(char *filename,
     intr_disable(); // 因为有时候会单独调用panic_spin,所以在此处关中断。
     put_str("\n\n\n!!!!! error !!!!!\n");
     put_str("filename:");
-    put_int((uint32_t)filename);
+    put_str((char *)filename);
     put_str("\n");
     put_str("line:0x");
     put_int(line);

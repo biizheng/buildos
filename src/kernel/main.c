@@ -6,7 +6,6 @@ int main(void)
     put_char('\n');
     put_str("I am kernel\n");
     init_all();
-    put_str("aaaa");
 
     ASSERT(1 == 2);
     while (1)

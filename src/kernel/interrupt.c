@@ -11,6 +11,17 @@
 
 #define IDT_DESC_CNT 0x21 // 目前总共支持的中断数
 
+#define EFLAGS_IF 0x00000200 // eflags寄存器中的if位为1
+
+// #define GET_EFLAGS(EFLAG_VAR) asm volatile("pushfl; popl %0" 
+//                                           : "=g"(EFLAG_VAR))
+static inline void GET_EFLAGS(uint32_t *eflag_var)
+{
+    asm volatile("pushfl ; \
+                 popl %0"
+                 : "=g"(*eflag_var));
+}
+
 /*中断门描述符结构体*/
 struct gate_desc
 {
@@ -80,13 +91,15 @@ static void general_intr_handler(uint8_t vec_nr)
     {           // 0x2f是从片8259A上的最后一个irq引脚，保留
         return; //IRQ7和IRQ15会产生伪中断(spurious interrupt),无须处理。
     }
-    if(vec_nr == 0xd ){
+    if (vec_nr == 0xd)
+    {
         put_str("0x0d:");
         put_str(intr_name[vec_nr]);
         put_char('\n');
         return;
     }
-    if(vec_nr == 0x20 ){
+    if (vec_nr == 0x20)
+    {
         put_str(" 0x20: ");
         put_str(intr_name[vec_nr]);
         return;
@@ -102,7 +115,6 @@ static void exception_init(void)
     int i;
     for (i = 0; i < IDT_DESC_CNT; i++)
     {
-
         /* idt_table数组中的函数是在进入中断后根据中断向量号调用的,
         * 见kernel/kernel.S的call [idt_table + %1*4] */
         idt_table[i] = general_intr_handler; // 默认为general_intr_handler。
@@ -129,6 +141,57 @@ static void exception_init(void)
     intr_name[17] = "#AC Alignment Check Exception";
     intr_name[18] = "#MC Machine-Check Exception";
     intr_name[19] = "#XF SIMD Floating-Point Exception";
+}
+
+/* 开中断并返回开中断前的状态*/
+enum intr_status intr_enable()
+{
+    enum intr_status old_status;
+    if (INTR_ON == intr_get_status())
+    {
+        old_status = INTR_ON;
+        return old_status;
+    }
+    else
+    {
+        old_status = INTR_OFF;
+        asm volatile("sti"); // 开中断,sti指令将IF位置1
+        return old_status;
+    }
+}
+
+/* 关中断,并且返回关中断前的状态 */
+enum intr_status intr_disable()
+{
+    enum intr_status old_status;
+    if (INTR_ON == intr_get_status())
+    {
+        old_status = INTR_ON;
+        asm volatile("cli"
+                     :
+                     :
+                     : "memory"); // 关中断,cli指令将IF位置0
+        return old_status;
+    }
+    else
+    {
+        old_status = INTR_OFF;
+        return old_status;
+    }
+}
+
+/* 将中断状态设置为status */
+enum intr_status intr_set_status(enum intr_status status)
+{
+    return status & INTR_ON ? intr_enable() : intr_disable();
+}
+
+/* 获取当前中断状态 */
+enum intr_status intr_get_status()
+{
+    uint32_t eflags = 0;
+    GET_EFLAGS(&eflags);
+    return (EFLAGS_IF & eflags) ? INTR_ON : INTR_OFF;
 }
 
 /*完成有关中断的所有初始化工作*/

@@ -1,7 +1,5 @@
 %include "boot.inc"
 section loader vstart=LOADER_BASE_ADDR
-    jmp loader_start
-    times 256 - ($ - $$) db 0   ; 此处预留60个描述符的空位(slot)
 ;构建gdt及其内部的描述符
     GDT_BASE:   dd    0x00000000 
                 dd    0x00000000
@@ -32,16 +30,18 @@ section loader vstart=LOADER_BASE_ADDR
     gdt_ptr dw  GDT_LIMIT 
             dd  GDT_BASE
 
-    ;进入保护模式时打印的字符串
-    loadermsg   db '2 loader in real.'
-    errormsg    db 'error error'
-
     ;人工对齐:
     ;   total_mem_bytes(4字节) + gdt_ptr(6字节) + ards_buf(244字节) + ards_nr(2字节),共256字节
     ards_buf times 244 db 0
     ards_nr dw 0             ;用于记录ards结构体数量
 
 loader_start:
+
+    jmp .stephere
+    ;进入保护模式时打印的字符串
+    loadermsg   db '2 loader in real.'
+    errormsg    db 'error error'
+loader_start.stephere:
     mov sp, LOADER_BASE_ADDR
     mov bp, loadermsg   ; ES:BP = 字符串地址
     mov cx, 17     ; CX = 字符串长度

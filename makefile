@@ -7,6 +7,7 @@ device = $(src)/device
 include = $(src)/include
 kernel = $(src)/kernel
 lib = $(src)/lib
+thread = $(src)/thread
 
 lib_kernel = $(lib)/kernel
 
@@ -15,7 +16,7 @@ log = $(build)/log
 lst = $(build)/lst
 obj = $(build)/obj
 
-INCLUDE = -I $(kernel) -I $(lib_kernel) -I $(device) -I $(lib) 
+INCLUDE = -I $(kernel) -I $(lib_kernel) -I $(device) -I $(lib) -I $(thread)
 CFLAGS = -m32 -c -fno-builtin -fno-stack-protector
 
 clean:
@@ -73,12 +74,15 @@ string.o:
 bitmap.o:
 	@gcc $(CFLAGS) $(INCLUDE) -o $(obj)/bitmap.o $(lib_kernel)/bitmap.c
 
-kernel.bin: main_32.o print.o kernel.o interrupt.o init.o timer.o debug.o string.o memory.o bitmap.o
+thread.o:
+	@gcc $(CFLAGS) $(INCLUDE) -o $(obj)/thread.o $(thread)/thread.c
+
+kernel.bin: main_32.o print.o kernel.o interrupt.o init.o timer.o debug.o string.o memory.o bitmap.o thread.o
 #	添加待链接文件时，最好保持调用在前，实现在后的书写顺序
 	@ld -m elf_i386 -Ttext 0xc0001500 -e main \
 	-o $(bin)/kernel.bin \
-	$(obj)/main_32.o $(obj)/string.o $(obj)/debug.o $(obj)/init.o $(obj)/interrupt.o $(obj)/timer.o \
-	$(obj)/kernel.o $(obj)/print.o $(obj)/memory.o $(obj)/bitmap.o
+	$(obj)/main_32.o $(obj)/thread.o $(obj)/string.o $(obj)/debug.o $(obj)/init.o $(obj)/interrupt.o $(obj)/timer.o \
+	$(obj)/kernel.o $(obj)/print.o $(obj)/memory.o $(obj)/bitmap.o 
 
 	@ls -lh $(bin)/kernel.bin
 # 	换行

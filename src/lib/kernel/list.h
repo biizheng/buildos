@@ -1,8 +1,10 @@
 #ifndef __LIB_KERNEL_LIST_H
 #define __LIB_KERNEL_LIST_H
 #include "global.h"
-
+// 获取结构体中某一个成员变量相对结构体起始地址的偏移量
 #define offset(struct_type, member) (int)(&((struct_type *)0)->member)
+
+// 通过成员的地址，将成员变量的指针转换为结构体指针
 #define elem2entry(struct_type, struct_member_name, elem_ptr) \
     (struct_type *)((int)elem_ptr - offset(struct_type, struct_member_name))
 

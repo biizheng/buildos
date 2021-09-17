@@ -43,6 +43,9 @@ print.o:
 kernel.o:
 	@nasm -f elf -o $(obj)/kernel.o $(kernel)/kernel.S
 
+switch.o:
+	@nasm -f elf -o $(obj)/switch.o $(thread)/switch.S
+
 ######## gcc
 main_32.o:
 	@gcc $(CFLAGS) $(INCLUDE) -o $(obj)/main_32.o $(kernel)/main.c
@@ -77,12 +80,16 @@ bitmap.o:
 thread.o:
 	@gcc $(CFLAGS) $(INCLUDE) -o $(obj)/thread.o $(thread)/thread.c
 
-kernel.bin: main_32.o print.o kernel.o interrupt.o init.o timer.o debug.o string.o memory.o bitmap.o thread.o
+list.o:
+	@gcc $(CFLAGS) $(INCLUDE) -o $(obj)/list.o $(lib_kernel)/list.c
+
+kernel.bin: main_32.o print.o kernel.o interrupt.o init.o timer.o debug.o string.o memory.o bitmap.o thread.o \
+switch.o list.o
 #	添加待链接文件时，最好保持调用在前，实现在后的书写顺序
 	@ld -m elf_i386 -Ttext 0xc0001500 -e main \
 	-o $(bin)/kernel.bin \
-	$(obj)/main_32.o $(obj)/thread.o $(obj)/string.o $(obj)/debug.o $(obj)/init.o $(obj)/interrupt.o $(obj)/timer.o \
-	$(obj)/kernel.o $(obj)/print.o $(obj)/memory.o $(obj)/bitmap.o 
+	$(obj)/main_32.o $(obj)/thread.o $(obj)/string.o $(obj)/debug.o $(obj)/init.o $(obj)/list.o $(obj)/interrupt.o $(obj)/timer.o \
+	$(obj)/kernel.o $(obj)/print.o $(obj)/memory.o $(obj)/bitmap.o $(obj)/switch.o 
 
 	@ls -lh $(bin)/kernel.bin
 # 	换行

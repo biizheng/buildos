@@ -1,4 +1,8 @@
 bin/*
 .vscode/
 build/
+compare/
 test/
+bx_enh_dbg.ini
+int.log
+kernel_map.txt

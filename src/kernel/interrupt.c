@@ -9,7 +9,8 @@
 #define PIC_S_CTRL 0xa0 // 从片的控制端口是0xa0
 #define PIC_S_DATA 0xa1 // 从片的数据端口是0xa1
 
-#define IDT_DESC_CNT 0x21 // 目前总共支持的中断数
+#define IDT_DESC_CNT 0x22    // 目前总共支持的中断数
+#define IDT_DESC_TOTAL 0x100 // CPU总共支持的中断
 
 #define EFLAGS_IF 0x00000200 // eflags寄存器中的if位为1
 
@@ -17,9 +18,9 @@
 //                                           : "=g"(EFLAG_VAR))
 static inline void GET_EFLAGS(uint32_t *eflag_var)
 {
-    asm volatile("pushfl ; \
-                 popl %0"
-                 : "=g"(*eflag_var));
+    __asm__ volatile("pushfl   \n\t"
+                     "popl %0  \n\t"
+                     : "=g"(*eflag_var));
 }
 
 /*中断门描述符结构体*/
@@ -34,7 +35,7 @@ struct gate_desc
 
 // 静态函数声明,非必须
 static void make_idt_desc(struct gate_desc *p_gdesc, uint8_t attr, intr_handler function);
-static struct gate_desc idt[IDT_DESC_CNT]; // idt是中断描述符表,本质上就是个中断门描述符数组
+static struct gate_desc idt[IDT_DESC_TOTAL]; // idt是中断描述符表,本质上就是个中断门描述符数组
 
 char *intr_name[IDT_DESC_CNT];                      // 用于保存异常的名字
 intr_handler idt_table[IDT_DESC_CNT];               // 定义中断处理程序数组.在kernel.S中定义的intrXXentry只是中断处理程序的入口,最终调用的是ide_table中的处理程序
@@ -81,20 +82,27 @@ static void idt_desc_init(void)
     {
         make_idt_desc(&idt[i], IDT_DESC_ATTR_DPL0, intr_entry_table[i]);
     }
+    // 将未编写中断处理程序的描述符初始化
+    for (i = IDT_DESC_CNT; i < IDT_DESC_TOTAL; i++)
+    {
+        make_idt_desc(&idt[i], IDT_DESC_ATTR_DPL0, intr_entry_table[21]);
+    }
     put_str("    idt_desc_init done\n");
 }
 
 /* 通用的中断处理函数,一般用在异常出现时的处理 */
 static void general_intr_handler(uint8_t vec_nr)
 {
-    if (vec_nr == 0x27 || vec_nr == 0x2f)
+    if (vec_nr == 0x27 || vec_nr == 0x2f || vec_nr == 0x15)
     {           // 0x2f是从片8259A上的最后一个irq引脚，保留
         return; //IRQ7和IRQ15会产生伪中断(spurious interrupt),无须处理。
     }
+
+    uint32_t cursor_cur = get_cursor();
     /* 将光标置为0,从屏幕左上角清出一片打印异常信息的区域,方便阅读 */
     set_cursor(0);
     int cursor_pos = 0;
-    while (cursor_pos < 320)
+    while (cursor_pos < 400)
     {
         put_char(' ');
         cursor_pos++;
@@ -103,7 +111,7 @@ static void general_intr_handler(uint8_t vec_nr)
     set_cursor(0); // 重置光标为屏幕左上角
     put_str("!!!!!!!      excetion message begin  !!!!!!!!\n");
     set_cursor(88); // 从第2行第8个字符开始打印
-    put_str(intr_name[vec_nr]);
+
     if (vec_nr == 14)
     { // 若为Pagefault,将缺失的地址打印出来并悬停
         int page_fault_vaddr = 0;
@@ -112,6 +120,25 @@ static void general_intr_handler(uint8_t vec_nr)
         put_str("\npage fault addr is ");
         put_int(page_fault_vaddr);
     }
+    else if (vec_nr == 13)
+    {
+        set_cursor(168);
+        put_str("cursor :0x ");
+        put_int(cursor_cur);
+
+        set_cursor(248);
+        put_str("0x");
+        put_int(vec_nr);
+        put_char(':');
+        put_str(intr_name[vec_nr]);
+    }
+    else
+    {
+        put_int(vec_nr);
+        put_char(':');
+        put_str(intr_name[vec_nr]);
+    }
+
     put_str("\n!!!!!!!      excetion message end    !!!!!!!!\n");
     // 能进入中断处理程序就表示已经处在关中断情况下,
     // 不会出现调度进程的情况。故下面的死循环不会再被中断。

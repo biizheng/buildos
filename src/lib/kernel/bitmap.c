@@ -8,7 +8,7 @@
 /* 将位图btmp初始化 */
 void bitmap_init(struct bitmap *btmp)
 {
-    memset(btmp->bits, 0, btmp->btmp_bytes_len);    //将目标地址用"0"填充
+    memset(btmp->bits, 0, btmp->btmp_bytes_len); //将目标地址用"0"填充
 }
 
 /* 判断bit_idx位是否为1,若为1则返回true，否则返回false */
@@ -84,7 +84,7 @@ void bitmap_set(struct bitmap *btmp, uint32_t bit_idx, int8_t value)
     uint32_t bit_odd = bit_idx % 8;  // 取余用于索引数组内的位
 
     /* 一般都会用个0x1这样的数对字节中的位操作,
- * 将1任意移动后再取反,或者先取反再移位,可用来对位置0操作。*/
+    * 将1任意移动后再取反,或者先取反再移位,可用来对位置0操作。*/
     if (value)
     { // 如果value为1
         btmp->bits[byte_idx] |= (BITMAP_MASK << bit_odd);

@@ -1,7 +1,7 @@
 #include "list.h"
 #include "interrupt.h"
 
-/* 初始化双向链表list */
+/* 初始化双向链表list，将链表头节点与尾节点相互链接 */
 void list_init(struct list *list)
 {
     list->head.prev = NULL;

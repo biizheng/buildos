@@ -49,7 +49,10 @@ void thread_create(struct task_struct *pthread, thread_func function, void *func
     kthread_stack->ebp = kthread_stack->ebx = kthread_stack->esi = kthread_stack->edi = 0;
 }
 
-/* 初始化线程基本信息 */
+/*  初始化线程 PCB 基本信息
+*   主函数状态直接设置为 TASK_RUNNING，线程初始状态被设置为 TASK_READY
+*   初始化线程名，优先级，已运行时间片以及结构体内部其他信息
+*/
 void init_thread(struct task_struct *pthread, char *name, int prio)
 {
     memset(pthread, 0, sizeof(*pthread));
@@ -96,7 +99,10 @@ struct task_struct *thread_start(char *name, int prio, thread_func function, voi
     return thread;
 }
 
-/* 将kernel中的main函数完善为主线程 */
+/*  将kernel中的main函数完善为主线程
+*   初始化主线程 PCB，
+*   将主线程添加至全局总线程队列 thread_all_list 中
+*/
 static void make_main_thread(void)
 {
     /* 因为main线程早已运行,咱们在loader.S中进入内核时的mov esp,0xc009f000,
@@ -115,8 +121,10 @@ void schedule()
 {
 
     ASSERT(intr_get_status() == INTR_OFF);
-
     struct task_struct *cur = running_thread();
+    put_char('_');
+    // put_char(cur->name[0]);
+
     if (cur->status == TASK_RUNNING)
     { // 若此线程只是cpu时间片到了,将其加入到就绪队列尾
         ASSERT(!elem_find(&thread_ready_list, &cur->general_tag));
@@ -127,7 +135,7 @@ void schedule()
     else
     {
         /* 若此线程需要某事件发生后才能继续上cpu运行,
-    　   不需要将其加入队列,因为当前线程不在就绪队列中。*/
+           不需要将其加入队列,因为当前线程不在就绪队列中。*/
     }
 
     ASSERT(!list_empty(&thread_ready_list));

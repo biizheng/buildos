@@ -28,7 +28,7 @@ void console_release()
 void console_put_str(char *str)
 {
     console_acquire();
-    // put_str(str);
+    put_str(str);
     console_release();
 }
 

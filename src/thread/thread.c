@@ -9,10 +9,9 @@
 
 #define PG_SIZE 4096
 
-struct task_struct *main_thread;     // 主线程PCB
-struct list thread_ready_list;       // 就绪队列
-struct list thread_all_list;         // 所有任务队列
-static struct list_elem *thread_tag; // 用于保存队列中的线程结点
+struct task_struct *main_thread; // 主线程PCB
+struct list thread_ready_list;   // 就绪队列
+struct list thread_all_list;     // 所有任务队列
 
 extern void switch_to(struct task_struct *cur, struct task_struct *next);
 
@@ -139,15 +138,14 @@ void schedule()
     }
 
     ASSERT(!list_empty(&thread_ready_list));
-    thread_tag = NULL; // thread_tag清空
     /* 将thread_ready_list队列中的第一个就绪线程弹出,准备将其调度上cpu. */
-    thread_tag = list_pop(&thread_ready_list);
+    struct list_elem *thread_tag = list_pop(&thread_ready_list); // 用于保存就绪队列中弹出的线程结点
     struct task_struct *next = elem2entry(struct task_struct, general_tag, thread_tag);
     next->status = TASK_RUNNING;
     switch_to(cur, next);
 }
 
-/* 当前线程将自己阻塞,标志其状态为stat. */
+/* 阻塞当前线程,并将设置自身状态 stat */
 void thread_block(enum task_status stat)
 {
     /* stat取值为TASK_BLOCKED,TASK_WAITING,TASK_HANGING,也就是只有这三种状态才不会被调度*/

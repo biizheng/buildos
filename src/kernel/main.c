@@ -15,14 +15,16 @@ int main(void)
     // clear_screen_row(5);
 
     thread_start("a_thread_k", 32, k_thread_a, "argA ");
-    // thread_start("b_thread_k", 10000, k_thread_b, "argB ");
-
+    thread_start("b_thread_k", 10000, k_thread_b, "argB ");
+    clear_screen();
     intr_enable(); // 打开中断,使时钟中断起作用
     int i = 0;
     while (1)
     {
-        i > 60000 ? i = 0 : i++;
-        // put_char('M');
+        intr_disable();
+        put_char('M');
+        intr_enable();
+        // i > 60000 ? i = 0 : i++;
         // console_put_int_pos(i, 0, 0);
         // console_put_char('m');
     };
@@ -37,9 +39,11 @@ void k_thread_a(void *arg)
     int i = 0;
     while (1)
     {
-        // put_char('a');
+        intr_disable();
+        put_char('a');
+        intr_enable();
         // console_put_int_pos(i, 2, 0);
-        i > 60000 ? i = 0 : i++;
+        // i > 60000 ? i = 0 : i++;
     }
 }
 
@@ -51,7 +55,9 @@ void k_thread_b(void *arg)
     // int i = 0;
     while (1)
     {
-        // put_char('c');
+        intr_disable();
+        put_char('b');
+        intr_enable();
         // console_put_int_pos(i, 4, 0);
         // console_put_char('b');
         // i > 60000 ? i = 0 : i++;

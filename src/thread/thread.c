@@ -121,7 +121,11 @@ void schedule()
 
     ASSERT(intr_get_status() == INTR_OFF);
     struct task_struct *cur = running_thread();
-    put_char('_');
+    // todo: 此处直接进行字符输出会受到
+    // 被打断进程设置的光标位的影响，需要一个专门服务于内核的输出函数
+    // 比如，在固定位置输出，不去获取光标寄存器的状态
+    
+    // put_char('_'); 
     // put_char(cur->name[0]);
 
     if (cur->status == TASK_RUNNING)

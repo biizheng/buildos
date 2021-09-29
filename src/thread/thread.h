@@ -2,6 +2,8 @@
 #define __THREAD_THREAD_H
 #include "stdint.h"
 #include "list.h"
+#include "bitmap.h"
+#include "memory.h"
 
 /* 自定义通用函数类型,它将在很多线程函数中做为形参类型 */
 typedef void thread_func(void *);
@@ -18,14 +20,13 @@ enum task_status
 };
 
 /***********   中断栈intr_stack   ***********
-* 此结构用于中断发生时保护程序(线程或进程)的上下文环境:
-* 进程或线程被外部中断或软中断打断时,会按照此结构压入上下文寄存器,
-* kernel.S 中 intr_exit 的出栈操作是此结构的逆操作
-* 此栈在线程自己的内核栈中位置固定,所在页的最顶端
+ * 此结构用于中断发生时保护程序(线程或进程)的上下文环境:
+ * 进程或线程被外部中断或软中断打断时,会按照此结构压入上下文
+ * 寄存器,  intr_exit中的出栈操作是此结构的逆操作
+ * 此栈在线程自己的内核栈中位置固定,所在页的最顶端
 ********************************************/
 struct intr_stack
 {
-    /* 以下数据是中断发生时由 kernel.S 中定义的中断入口程序(intr%1entry)压入 */
     uint32_t vec_no; // kernel.S 宏VECTOR中push %1压入的中断号
     uint32_t edi;
     uint32_t esi;
@@ -80,7 +81,7 @@ struct task_struct
     enum task_status status;
     char name[16];
     uint8_t priority; // 线程优先级
-    uint8_t ticks; // 每次在处理器上执行的时间嘀嗒数
+    uint8_t ticks;    // 每次在处理器上执行的时间嘀嗒数
 
     /* 此任务自上cpu运行后至今占用了多少cpu嘀嗒数,
      * 也就是此任务执行了多久*/
@@ -92,9 +93,13 @@ struct task_struct
     /* all_list_tag的作用是用于线程队列thread_all_list中的结点 */
     struct list_elem all_list_tag;
 
-    uint32_t *pgdir;      // 进程自己页表的虚拟地址
-    uint32_t stack_magic; // 用这串数字做栈的边界标记,用于检测栈的溢出
+    uint32_t *pgdir;                    // 进程自己页表的虚拟地址
+    struct virtual_addr userprog_vaddr; // 用户进程的虚拟地址
+    uint32_t stack_magic;               // 用这串数字做栈的边界标记,用于检测栈的溢出
 };
+
+extern struct list thread_ready_list;
+extern struct list thread_all_list;
 
 void thread_create(struct task_struct *pthread, thread_func function, void *func_arg);
 void init_thread(struct task_struct *pthread, char *name, int prio);

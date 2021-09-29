@@ -6,6 +6,7 @@
 #include "interrupt.h"
 #include "print.h"
 #include "memory.h"
+#include "process.h"
 
 #define PG_SIZE 4096
 
@@ -124,8 +125,8 @@ void schedule()
     // todo: 此处直接进行字符输出会受到
     // 被打断进程设置的光标位的影响，需要一个专门服务于内核的输出函数
     // 比如，在固定位置输出，不去获取光标寄存器的状态
-    
-    // put_char('_'); 
+
+    // put_char('_');
     // put_char(cur->name[0]);
 
     if (cur->status == TASK_RUNNING)
@@ -146,6 +147,10 @@ void schedule()
     struct list_elem *thread_tag = list_pop(&thread_ready_list); // 用于保存就绪队列中弹出的线程结点
     struct task_struct *next = elem2entry(struct task_struct, general_tag, thread_tag);
     next->status = TASK_RUNNING;
+
+    /* 激活任务页表等 */
+    process_activate(next);
+
     switch_to(cur, next);
 }
 

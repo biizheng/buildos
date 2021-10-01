@@ -158,7 +158,9 @@ void schedule()
 
     ASSERT(!list_empty(&thread_ready_list));
     /* 将thread_ready_list队列中的第一个就绪线程弹出,准备将其调度上cpu. */
-    struct list_elem *thread_tag = list_pop(&thread_ready_list); // 用于保存就绪队列中弹出的线程结点
+    thread_tag = NULL; // thread_tag清空
+                       /* 将thread_ready_list队列中的第一个就绪线程弹出,准备将其调度上cpu. */
+    thread_tag = list_pop(&thread_ready_list);
     struct task_struct *next = elem2entry(struct task_struct, general_tag, thread_tag);
     next->status = TASK_RUNNING;
 

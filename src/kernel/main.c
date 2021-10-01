@@ -6,18 +6,19 @@
 #include "process.h"
 #include "syscall-init.h"
 #include "../lib/usr/syscall.h"
+#include "stdio.h"
 
 void k_thread_a(void *);
 void k_thread_b(void *);
 void u_prog_a(void);
 void u_prog_b(void);
-int prog_a_pid = 0, prog_b_pid = 0;
 
 int main(void)
 {
     put_str("I am kernel\n");
     init_all();
-
+    // clear_screen();
+    // set_cursor(0);
     process_execute(u_prog_a, "user_prog_a");
     process_execute(u_prog_b, "user_prog_b");
 
@@ -39,9 +40,6 @@ void k_thread_a(void *arg)
     console_put_str(" thread_a_pid:0x");
     console_put_int(sys_getpid());
     console_put_char('\n');
-    console_put_str(" prog_a_pid:0x");
-    console_put_int(prog_a_pid);
-    console_put_char('\n');
     while (1)
         ;
 }
@@ -53,9 +51,6 @@ void k_thread_b(void *arg)
     console_put_str(" thread_b_pid:0x");
     console_put_int(sys_getpid());
     console_put_char('\n');
-    console_put_str(" prog_b_pid:0x");
-    console_put_int(prog_b_pid);
-    console_put_char('\n');
     while (1)
         ;
 }
@@ -63,15 +58,15 @@ void k_thread_b(void *arg)
 /* 测试用户进程 */
 void u_prog_a(void)
 {
-    prog_a_pid = getpid();
-    while (1)
+    printf(" prog_a_pid:0x%x\n", getpid());
+    while (1){}
         ;
 }
 
 /* 测试用户进程 */
 void u_prog_b(void)
 {
-    prog_b_pid = getpid();
+    printf(" prog_b_pid:0x%x\n", getpid());
     while (1)
         ;
 }

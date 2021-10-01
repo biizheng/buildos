@@ -11,6 +11,7 @@ thread = $(src)/thread
 userprog = $(src)/userprog
 
 lib_kernel = $(lib)/kernel
+lib_usr = $(lib)/usr
 
 bin = $(build)/bin
 log = $(build)/log
@@ -84,6 +85,9 @@ thread.o:
 list.o:
 	@gcc $(CFLAGS) $(INCLUDE) -o $(obj)/list.o $(lib_kernel)/list.c
 
+syscall.o:
+	@gcc $(CFLAGS) $(INCLUDE) -o $(obj)/syscall.o $(lib_usr)/syscall.c
+
 sync.o:
 	@gcc $(CFLAGS) $(INCLUDE) -o $(obj)/sync.o $(thread)/sync.c
 
@@ -102,14 +106,19 @@ tss.o:
 process.o:
 	@gcc $(CFLAGS) $(INCLUDE) -o $(obj)/process.o $(userprog)/process.c
 
+syscall-init.o:
+	@gcc $(CFLAGS) $(INCLUDE) -o $(obj)/syscall-init.o $(userprog)/syscall-init.c
+
 kernel.bin: main_32.o print.o kernel.o interrupt.o init.o timer.o debug.o string.o memory.o bitmap.o thread.o \
-switch.o list.o sync.o console.o keyboard.o ioqueue.o tss.o process.o
+switch.o list.o sync.o console.o keyboard.o ioqueue.o tss.o process.o syscall-init.o syscall.o
 #	添加待链接文件时，需要尽可能保持调用在前，实现在后的书写顺序，注 main_32.o 必须放到输入文件参数的最前面
 	@ld -m elf_i386 -Ttext 0xc0001500 -e main \
 	-o $(bin)/kernel.bin \
-	$(obj)/main_32.o $(obj)/sync.o $(obj)/thread.o $(obj)/string.o $(obj)/debug.o $(obj)/init.o $(obj)/list.o \
+	$(obj)/main_32.o $(obj)/sync.o $(obj)/syscall-init.o $(obj)/thread.o $(obj)/string.o $(obj)/debug.o \
+	$(obj)/init.o $(obj)/list.o $(obj)/syscall.o \
 	$(obj)/keyboard.o $(obj)/process.o $(obj)/interrupt.o $(obj)/timer.o $(obj)/tss.o \
-	$(obj)/kernel.o $(obj)/print.o $(obj)/memory.o $(obj)/bitmap.o $(obj)/switch.o $(obj)/console.o $(obj)/ioqueue.o
+	$(obj)/kernel.o $(obj)/print.o $(obj)/memory.o $(obj)/bitmap.o $(obj)/switch.o $(obj)/console.o \
+	$(obj)/ioqueue.o
 
 	@ls -lh $(bin)/kernel.bin
 # 	换行

@@ -8,6 +8,7 @@
 #include "interrupt.h"
 #include "string.h"
 #include "console.h"
+#include "memory.h"
 
 // 定义在 kernel.S 中
 extern void intr_exit(void);
@@ -118,6 +119,7 @@ void process_execute(void *filename, char *name)
     create_user_vaddr_bitmap(thread);
     thread_create(thread, start_process, filename);
     thread->pgdir = create_page_dir();
+    block_desc_init(thread->u_block_desc);
 
     enum intr_status old_status = intr_disable();
     ASSERT(!elem_find(&thread_ready_list, &thread->general_tag));

@@ -24,13 +24,7 @@ int main(void)
     // thread_start("k_thread_a", 31, k_thread_a, "I am thread_a");
     // thread_start("k_thread_b", 31, k_thread_b, "I am thread_b");
     while (1)
-    {
-        asm volatile(" sti \n\t"
-                     " hlt \n\t"
-                     :
-                     :
-                     : "memory");
-    };
+        ;
     return 0;
 }
 
